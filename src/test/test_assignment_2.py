@@ -1,8 +1,9 @@
-#Tyler Boudreau
+# Tyler Boudreau
+# Assignment 2
+# COT 4500
 import numpy as np
-from numpy import *
-
 np.set_printoptions(precision=7,suppress=True,linewidth=100)
+
 
 def nevilles_method(x_points, y_points, x):
     # must specify the matrix size (this is based on how many columns/rows you want)
@@ -27,7 +28,6 @@ def nevilles_method(x_points, y_points, x):
             # this is the value that we will find in the matrix
             coefficient = (first_multiplication - second_multiplication) / denominator
             matrix[i][j] = coefficient
-
     print(matrix[i][j], "\n")
 
 def divided_difference_table(x_points, y_points):
@@ -51,10 +51,8 @@ def divided_difference_table(x_points, y_points):
             operation = numerator / denominator
 
             # cut it off to view it more simpler
-            matrix[i][j] = '{0:.7g}'.format(operation)
-
+            matrix[i][j] = operation
     return matrix
-
 
 def get_approximate_result(matrix, x_points, value):
     # p0 is always y0 and we use a reoccuring x to avoid having to recalculate x 
@@ -78,17 +76,51 @@ def get_approximate_result(matrix, x_points, value):
     # final result
     return reoccuring_px_result
 
+def apply_div_dif(matrix: np.array):
+    size = len(matrix)
+    for i in range(2, size):
+        for j in range(2, i+2):
+            if (j >= len(matrix[i]) or matrix[i][j] != 0): # Check if value is already filled
+                continue
+            # Get left cell entry
+            left: float = matrix[i][j-1]
+            # Get diagonal left entry
+            diagonal_left: float = matrix[i-1][j-1]
+            numerator: float = left - diagonal_left # Calculate numerator
+            # denominator is current i's x_val minus the starting i's x_val
+            denominator = matrix[i][0] - matrix[i-2][0]
+            operation = numerator / denominator # Perform division operation
+            matrix[i][j] = operation
+    return matrix
+
+def hermite_interpolation(x_points, y_points, slopes):
+    num_of_points = len(x_points)
+    # Matrix size changes because of "doubling" up info for hermite
+    matrix = np.zeros((num_of_points*2,num_of_points*2))
+    # Fill with x values 
+    for i in range(num_of_points):
+        matrix[i*2][0] = x_points[i]
+        matrix[i*2+1][0] = x_points[i]
+    # Fill with y values 
+    for i in range(num_of_points):
+        matrix[i*2][1] = y_points[i]
+        matrix[i*2+1][1] = y_points[i]
+    # Fill with derivative values
+    for i in range(num_of_points):
+        matrix[i*2+1][2] = slopes[i]
+    filled_matrix = apply_div_dif(matrix) # Apply divided difference method 
+    print(filled_matrix,"\n")
 
 
-if __name__ == "__main__":
-    #1
+def main():
+    # Problem 1
     x_points = [3.6, 3.8, 3.9]
     y_points = [1.675, 1.436, 1.318]
     x = 3.7
 
     nevilles_method(x_points, y_points, x)
 
-    #2
+    # Problem 2
     x_points = [7.2, 7.4, 7.5, 7.6]
     y_points = [23.5492, 25.3913, 26.8224, 27.4589]
     divided_table = divided_difference_table(x_points, y_points)
@@ -99,8 +131,19 @@ if __name__ == "__main__":
         result[i - 1] = divided_table[i][i]
     print(result.T[0], "\n")
 
+    # Problem 3
     # find approximation
     approximating_x = 7.3
     final_approximation = get_approximate_result(divided_table, x_points, approximating_x)
     print(final_approximation, "\n")
+
+    # Problem 4
+    x_points = [3.6, 3.8, 3.9]
+    y_points = [1.675, 1.436, 1.318]
+    slopes = [-1.195, -1.188, -1.182]
+    hermite_interpolation(x_points, y_points, slopes)
+
+
+if __name__ == "__main__":
+    main()
 
